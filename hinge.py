@@ -7,17 +7,19 @@ import cadquery as cq
 
 n_socket_arms = 3
 socket_arm_w = 8
-socket_arm_l = 2
+socket_arm_l = 1
 socket_arm_h = 2
-socket_post_h = 6
+socket_post_h = 5
 socket_post_l = 5
 
-socket_ball_clearance = 0.2
+socket_ball_clearance = 0.15
 interarm_clearance = 0.1
+arm_base_chamfer = 0.5
+arm_corner_fillet = 1
 
 ball_arm_w = 3
-ball_arm_l = 2
-ball_arm_h = 2
+ball_arm_l = socket_arm_l
+ball_arm_h = socket_arm_h
 ball_post_h = socket_post_h
 ball_post_l = socket_post_l
 
@@ -34,8 +36,8 @@ hinge_base_l = 10
 n_ball_arms = n_socket_arms + 1
 ball_diam = socket_post_l - 2
 
-ball_h = ball_arm_h + (ball_post_h-ball_arm_h) / 2
-socket_h = socket_arm_h + (socket_post_h-socket_arm_h) / 2
+ball_h = ball_arm_h + (ball_post_h-ball_arm_h) / 2 - 1
+socket_h = socket_arm_h + (socket_post_h-socket_arm_h) / 2 - 1
 
 ball_hinge_total_w = (n_socket_arms * socket_arm_w) + (n_ball_arms * ball_arm_w) + ((n_ball_arms + n_socket_arms - 1) * interarm_clearance)
 socket_hinge_total_w = ball_hinge_total_w - 2*(interarm_clearance+ball_arm_w)
@@ -51,6 +53,8 @@ def hinge(export_stl):
             [0, socket_post_h],
             [0, 0]
         ]).finalize().extrude(socket_arm_w/2, both=1)
+        s = s.faces("<Z").edges("not |Y").chamfer(arm_base_chamfer)
+        s = s.faces("<Z or >Z").edges("<X").fillet(arm_corner_fillet)
         def ball_cutout(face_sel_str):
             nonlocal s
             sphere_cutout = s.faces(face_sel_str)\
@@ -75,6 +79,9 @@ def hinge(export_stl):
             [0, ball_post_h],
             [0, 0]
         ]).finalize().extrude(ball_arm_w/2, both=1)
+        b = b.faces("<Z").edges("not |Y").chamfer(arm_base_chamfer)
+        b = b.faces("<Z or >Z").edges("<X").fillet(arm_corner_fillet)
+
         def ball(face_sel_str):
             nonlocal b
             b = b.faces(face_sel_str)\
@@ -118,14 +125,29 @@ def hinge(export_stl):
     bh = ball_hinge()
     sh = socket_hinge()
 
-    show_folded = 0
+    folded_angle = 90
+    alpha = 0.5
     a = cq.Assembly()
-    if (show_folded):
-        a = a.add(ball_hinge().translate((-ball_post_l/2,0,-ball_h)), loc=cq.Location(cq.Vector(0, 0, 0), cq.Vector(0, 1, 0), -180))\
-            .add(socket_hinge(), loc=cq.Location(cq.Vector(socket_post_l/2, 0, -socket_h), cq.Vector(0, 0, 1), 180))
+    if (folded_angle > 0 and not export_stl):
+        a = a.add(
+                ball_hinge().translate((-ball_post_l/2,0,-ball_h)), 
+                loc=cq.Location(cq.Vector(0, 0, 0), cq.Vector(0, 1, 0), -folded_angle),
+                color=cq.Color(0,0.2,0,alpha)
+            ).add(
+                socket_hinge(), 
+                loc=cq.Location(cq.Vector(socket_post_l/2, 0, -socket_h), cq.Vector(0, 0, 1), 180),
+                color=cq.Color(0,0,0.2,alpha)
+            )
     else:
-        a = a.add(ball_hinge(), loc=cq.Location(cq.Vector(-ball_post_l/2, 0, 0)))\
-        .add(socket_hinge(), loc=cq.Location(cq.Vector(socket_post_l/2, 0, 0), cq.Vector(0, 0, 1), 180))
+        a = a.add(
+                ball_hinge(), 
+                loc=cq.Location(cq.Vector(-ball_post_l/2, 0, 0)),
+                color=cq.Color(0,0.2,0,alpha)
+            ).add(
+                socket_hinge(), 
+                loc=cq.Location(cq.Vector(socket_post_l/2, 0, 0), cq.Vector(0, 0, 1), 180),
+                color=cq.Color(0,0,0.2,alpha)
+            )
     
     if(export_stl):
         cq.exporters.export(bh, "stl/ball_hinge.stl")
@@ -133,6 +155,6 @@ def hinge(export_stl):
         cq.exporters.export(a.toCompound(), "stl/hinge.stl")
         #a.save("stl/hinge.step")
 
-    return a
+    return a 
     
 show_object(hinge(export_stl=1))
