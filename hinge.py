@@ -138,7 +138,7 @@ def hinge(n_socket_arms = 3, socket_arm_w = 8, ball_arm_w = 3,
     
     a = a.toCompound()
     
-    if (folded_angle > 0 and not export_stl):
+    if (folded_angle > 0 and not export_stl): 
         #May not work if socket + ball arm lengths are different?
         a = a.translate((ball_post_l/2 + socket_arm_l, 0, ball_h))
     else:
