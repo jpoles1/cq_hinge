@@ -6,7 +6,7 @@ default_opts = {
     "ball_arm_w": 3,
     "arm_l": 1,
     "arm_h": 2,
-    "hinge_base_l": 10,
+    "hinge_base_l": 0.001,
     "post_h": 5,
     "post_l": 5,
     "socket_ball_clearance": 0.15,
@@ -23,6 +23,8 @@ class Hinge:
         self.reload_default_opts(**args)
         self.ball_socket_x = self.opts["post_l"] / 2
         self.ball_socket_z = self.opts["arm_h"] + (self.opts["post_h"]-self.opts["arm_h"]) / 2 - 1
+        self.total_l = self.opts["arm_l"] + self.opts["post_l"]
+        self.arm_l = self.opts["arm_l"]
 
     def reload_default_opts(self, **args):
         full_opts = self.opts.copy()
@@ -30,7 +32,7 @@ class Hinge:
             if key in full_opts:
                 full_opts[key] = val
         self.opts = full_opts
-        print(self.opts)
+
     def hinge(self):
         o = self.opts
         
@@ -49,7 +51,6 @@ class Hinge:
         folded_angle = o["folded_angle"]
         export_stl = o["export_stl"]
 
-        print(folded_angle)
         ###
         #COMPUTED VALUES
         ###
@@ -174,13 +175,13 @@ class Hinge:
             cq.exporters.export(sh, "stl/socket_hinge.stl")
             cq.exporters.export(a.toCompound(), "stl/hinge.stl")
             #a.save("stl/hinge.step")
-        
         a = a.toCompound()
-        
         if (folded_angle > 0 and not export_stl): 
-            a = a.translate((ball_socket_x + arm_l, 0, ball_socket_z))
+            #a = a.translate((ball_socket_x + arm_l, 0, ball_socket_z))
+            a = a.translate((0, 0, ball_socket_z))
         else:
-            a = a.translate((ball_socket_x + arm_l, 0, 0))
+            #a = a.translate((ball_socket_x + arm_l, 0, 0))
+            a = a.translate((0, 0, 0))
         return a 
 
     def fixed_width_hinge(self, hinge_w, n_socket_arms=3, arm_w_ratio=0.5, interarm_clearance=0.1, **args):
@@ -190,5 +191,7 @@ class Hinge:
         self.reload_default_opts(n_socket_arms=n_socket_arms, socket_arm_w=socket_arm_w, ball_arm_w=ball_arm_w, **args)
         return self.hinge()
 
-#show_object(Hinge(export_stl=0).hinge())
+#show_object(Hinge(export_stl=0, folded_angle=30).hinge())
+#show_object(Hinge(export_stl=0, folded_angle=135).hinge())
+#show_object(Hinge(export_stl=0, folded_angle=90).hinge())
 #show_object(Hinge(folded_angle=90).fixed_width_hinge(40))
