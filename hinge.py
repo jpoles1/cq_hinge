@@ -21,8 +21,9 @@ class Hinge:
     def __init__(self, **args):
         self.opts = default_opts
         self.reload_default_opts(**args)
+        self.ball_diam = self.opts["post_l"] - 2
         self.ball_socket_x = self.opts["post_l"] / 2
-        self.ball_socket_z = self.opts["arm_h"] + (self.opts["post_h"]-self.opts["arm_h"]) / 2 - 1
+        self.ball_socket_z = self.opts["arm_h"] + self.opts["post_h"] / 2 - self.ball_diam / 2
         self.total_l = self.opts["arm_l"] + self.opts["post_l"]
         self.arm_l = self.opts["arm_l"]
 
@@ -55,8 +56,8 @@ class Hinge:
         #COMPUTED VALUES
         ###
         n_ball_arms = n_socket_arms + 1
-        ball_diam = post_l - 2
-
+        
+        ball_diam = self.ball_diam
         ball_socket_x = self.ball_socket_x
         ball_socket_z = self.ball_socket_z
 
