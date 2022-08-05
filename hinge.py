@@ -10,7 +10,7 @@ default_opts = {
     "post_h": 5,
     "post_l": 5,
     "socket_ball_clearance": 0.15,
-    "interarm_clearance": 0.1,
+    "interarm_clearance": 0.3,
     "arm_base_chamfer": 0.5,
     "arm_corner_fillet": 1,
     "folded_angle": 0,
@@ -21,11 +21,6 @@ class Hinge:
     def __init__(self, **args):
         self.opts = default_opts
         self.reload_default_opts(**args)
-        self.ball_diam = self.opts["post_l"] - 2
-        self.ball_socket_x = self.opts["post_l"] / 2
-        self.ball_socket_z = self.opts["arm_h"] + self.opts["post_h"] / 2 - self.ball_diam / 2
-        self.total_l = self.opts["arm_l"] + self.opts["post_l"]
-        self.arm_l = self.opts["arm_l"]
 
     def reload_default_opts(self, **args):
         full_opts = self.opts.copy()
@@ -33,6 +28,13 @@ class Hinge:
             if key in full_opts:
                 full_opts[key] = val
         self.opts = full_opts
+        #Recompute values for publically avail properties
+        self.ball_diam = self.opts["post_l"] - 2
+        self.ball_socket_x = self.opts["post_l"] / 2
+        self.ball_socket_z = self.opts["arm_h"] + self.opts["post_h"] / 2 - self.ball_diam / 2
+        self.total_l = self.opts["arm_l"] + self.opts["post_l"]
+        self.arm_l = self.opts["arm_l"]
+
 
     def hinge(self):
         o = self.opts
